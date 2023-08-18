@@ -3,24 +3,26 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./nft.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract LedningMarket is NFT{
 
-uint256 public creatorFee = 1;
+uint256 public PROTOCOL_FEE = 10;
 address payable private _owner;
 uint256 public _orderIdCounter;
 uint256 public _borrowIdCounter;
 
-constructor(){
+constructor(address _nativeToken){
     _owner= payable(msg.sender);
-    initialize();
+    initialize(_nativeToken);
+    NativeToken=ERC20(_nativeToken);
 }
 
 
 
 struct order{
     uint256 orderId;
-    address payable owner;
+    address  owner;
     uint256 tokenID;
     uint256 Amount;
     bool lending;
@@ -35,8 +37,8 @@ struct borrows{
     uint256 starttime;
     uint256 endtime;
     uint256 amount;
-    address payable borrower;
-    address payable owner;
+    address  borrower;
+    address  owner;
     bool active;
 }
 
@@ -50,26 +52,23 @@ orders[_orderIdCounter]= order(_orderIdCounter,payable(msg.sender),tokenID,amoun
 _transfer(msg.sender,address(this),tokenID);
 }
 
-
 function buy ( uint256 orderId) payable public {
     require(!orders[orderId].lended,"LENDING MARKET: This order is not for sale");
-    require(orders[orderId].Amount == msg.value);
-    _owner.send(creatorFee);
-    orders[orderId].owner.transfer(msg.value);
+    NativeToken.transferFrom(msg.sender,owner(),PROTOCOL_FEE);
+    NativeToken.transferFrom(msg.sender,orders[orderId].owner,orders[orderId].Amount);
     orders[orderId].active=false;
     orders[orderId].lending=false;
     _transfer(address(this),msg.sender,orders[orderId].tokenID);
 }
 
 
-function borrow(uint256 orderId,uint _time,uint256 interest) public payable returns(bool){
-    uint256 tokenId = orders[orderId].tokenID;
-    require(orders[orderId].lending,"LENDING MARKET : the given order Id has not opened for borrwing");
-    _borrowIdCounter++;
-    uint256 time = block.timestamp + _time;
-    uint256 coinsTobePay = orders[orderId].Amount / 2;
-    (orders[orderId].owner).send(coinsTobePay);
-    borrowOrders[_borrowIdCounter]=borrows(_borrowIdCounter,tokenId,interest,block.timestamp,time,coinsTobePay,payable(msg.sender),orders[orderId].owner,true);
-}
+// function borrow(uint256 orderId,uint _time,uint256 interest) public payable returns(bool){
+//     uint256 tokenId = orders[orderId].tokenID;
+//     require(orders[orderId].lending,"LENDING MARKET : the given order Id has not opened for borrwing");
+//     _borrowIdCounter++;
+//     uint256 time = block.timestamp + _time;
+//     uint256 coinsTobePay = orders[orderId].Amount / 2;
+//     borrowOrders[_borrowIdCounter]=borrows(_borrowIdCounter,tokenId,interest,block.timestamp,time,coinsTobePay,payable(msg.sender),orders[orderId].owner,true);
+// }
 }
 
