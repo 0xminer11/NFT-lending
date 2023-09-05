@@ -9,24 +9,27 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Burnab
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract NFT is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, PausableUpgradeable, OwnableUpgradeable, ERC721BurnableUpgradeable, UUPSUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter private _tokenIdCounter;
-
+    
+    ERC20 public NativeToken;
     /// @custom:oz-upgrades-unsafe-allow constructor
     // constructor() {
     //     _disableInitializers();
     // }
 
-    function initialize() initializer public {
+    function initialize(address _nativeToken) initializer public {
         __ERC721_init("NFT", "NFT");
         __ERC721URIStorage_init();
         __Pausable_init();
         __Ownable_init();
         __ERC721Burnable_init();
         __UUPSUpgradeable_init();
+        NativeToken=ERC20(_nativeToken);
     }
 
     function pause() public onlyOwner {
@@ -37,7 +40,7 @@ contract NFT is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, P
         _unpause();
     }
 
-    function safeMint(address to, string memory uri) public onlyOwner {
+    function safeMint(address to, string memory uri) public {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);

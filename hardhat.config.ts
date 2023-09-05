@@ -24,10 +24,11 @@ const config: HardhatUserConfig = {
           : [],
     }
   },
-  // etherscan: {
-  //   apiKey: {
-  //     sepoli:
-  // }
+  etherscan: {
+    apiKey: {
+      polygonMumbai:'C2JRX8UG5NHYUJND8GGECXJINBIT5YVDV4'
+  }
+}
 };
 
 export default config;
